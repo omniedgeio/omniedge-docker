@@ -6,7 +6,6 @@ Run OmniEdge in a container
 
 ```
 docker build -t omniedge/omniedge:latest .
-
 ```
 
 ## Usage
