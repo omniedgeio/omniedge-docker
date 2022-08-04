@@ -1,11 +1,11 @@
-#OmniEdge Docker
+# OmniEdge Docker
 
 Run OmniEdge in a container
 
 ## Build
 
 ```
-docker build -t omniedge:latest .
+docker build -t omniedge/omniedge:latest .
 
 ```
 
@@ -14,8 +14,8 @@ docker build -t omniedge:latest .
 ```
 sudo docker run -d \
   -e OMNIEDGE_SECURITYKEY=OMNIEDGE_SECURITYKEY \
-  -e OMNIEDGE_VIRUTALNETWORK_ID="vnw_ddddddddddd" \
+  -e OMNIEDGE_VIRUTALNETWORK_ID="OMNIEDGE_VIRUTALNETWORK_ID" \
   --network host \
   --privileged \
-  omniedge:latest
+  omniedge/omniedge:latest
 ```
