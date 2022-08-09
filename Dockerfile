@@ -4,8 +4,10 @@ ARG TARGETARCH
 ARG VERSION=0.2.3
 
 RUN apk update \
-  apk add --no-cache wget unzip bash \
-  && wget https://github.com/omniedgeio/omniedge/releases/download/v${VERSION}/omniedgecli-${VERSION}-${TARGETARCH}.zip
+    && apk add bash
+RUN apk update \
+    apk add --no-cache wget unzip \
+    && wget https://github.com/omniedgeio/omniedge/releases/download/v${VERSION}/omniedgecli-${VERSION}-${TARGETARCH}.zip
 RUN unzip omniedgecli-${VERSION}-${TARGETARCH}.zip -d /usr/sbin
 RUN rm omniedgecli-${VERSION}-${TARGETARCH}.zip
 
