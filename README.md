@@ -10,6 +10,14 @@ docker build -t omniedge/omniedge:latest .
 
 ## Usage
 
+1. By `docker-compose`
+
+```bash
+sudo docker-compose up -d
+```
+
+2. by `docker run`
+
 ```
 sudo docker run -d \
   -e OMNIEDGE_SECURITYKEY=OMNIEDGE_SECURITYKEY \
