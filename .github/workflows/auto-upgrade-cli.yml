@@ -32,6 +32,12 @@ jobs:
           sed -i "s/ARG VERSION=.*/ARG VERSION=${VERSION}/" Dockerfile
           echo "Updated Dockerfile to version ${VERSION}"
 
+      - name: Update README
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          sed -i "s/>Latest version: .*/>Latest version: ${VERSION}/" README.md
+          echo "Updated README to version ${VERSION}"
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
@@ -45,6 +51,7 @@ jobs:
 
             **Changes:**
             - Updated `Dockerfile` ARG VERSION to `${{ steps.version.outputs.version }}`
+            - Updated `README.md` latest version to `${{ steps.version.outputs.version }}`
 
             **CLI Release:** https://github.com/omniedgeio/omniedge-cli/releases/tag/v${{ steps.version.outputs.version }}
           branch: auto-upgrade/cli-v${{ steps.version.outputs.version }}
