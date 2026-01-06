@@ -1,7 +1,7 @@
 FROM alpine:3.16
 
 ARG TARGETARCH
-ARG VERSION=0.2.4
+ARG VERSION=0.3.0
 
 RUN apk update \
     && apk add bash
