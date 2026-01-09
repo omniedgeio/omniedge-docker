@@ -8,7 +8,7 @@ ARG VERSION=0.3.0
 # CLI uses: amd64, arm64, arm
 RUN apk update && apk add --no-cache bash wget unzip
 
-RUN wget https://github.com/omniedgeio/omniedge-cli/releases/download/v${VERSION}/omniedge-v${VERSION}-${TARGETARCH}.zip \
+RUN wget https://github.com/omniedgeio/omniedge/releases/download/v${VERSION}/omniedge-v${VERSION}-${TARGETARCH}.zip \
     && unzip omniedge-v${VERSION}-${TARGETARCH}.zip -d /usr/sbin \
     && rm omniedge-v${VERSION}-${TARGETARCH}.zip
 
