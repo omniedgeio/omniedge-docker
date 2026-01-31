@@ -2,6 +2,12 @@
 
 Run OmniEdge VPN in Docker.
 
+## Quick Start
+
+```bash
+docker pull omniedge/omniedge:latest
+```
+
 ## Usage
 
 ### Edge Mode (VPN Client)
@@ -92,7 +98,7 @@ docker exec omniedge omniedge status
 docker stop omniedge
 ```
 
-## Build
+## Build from Source
 
 ```bash
 docker build -t omniedge/omniedge:latest .
@@ -107,3 +113,8 @@ docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 \
 - `linux/amd64`
 - `linux/arm64`
 - `linux/arm/v7`
+
+## Links
+
+- [Docker Hub](https://hub.docker.com/r/omniedge/omniedge)
+- [GitHub](https://github.com/omniedgeio/omniedge)
