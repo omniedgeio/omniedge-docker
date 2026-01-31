@@ -1,5 +1,7 @@
-version: "2.1"
+version: "3.8"
+
 services:
+  # Edge mode - VPN client (default)
   omniedge:
     image: omniedge/omniedge:latest
     container_name: omniedge
@@ -8,9 +10,47 @@ services:
     network_mode: host
     restart: unless-stopped
     environment:
-      - OMNIEDGE_SECURITYKEY=OMNIEDGE_SECURITYKEY
-      - OMNIEDGE_VIRUTALNETWORK_ID=OMNIEDGE_VIRUTALNETWORK_ID
+      - OMNIEDGE_MODE=edge
+      - OMNIEDGE_NETWORK_ID=${OMNIEDGE_NETWORK_ID}
+      - OMNIEDGE_SECURITY_KEY=${OMNIEDGE_SECURITY_KEY}
+      # Optional: Exit node configuration
+      # - OMNIEDGE_AS_EXIT_NODE=true
+      # - OMNIEDGE_EXIT_NODE=10.0.0.1
+      # - OMNIEDGE_VERBOSE=true
     volumes:
       - /dev/net/tun:/dev/net/tun
-    cap_add:                                             
-      - net_admin
+    cap_add:
+      - NET_ADMIN
+
+  # Nucleus mode - Signaling server only (no VPN, no login required)
+  # omniedge-nucleus:
+  #   image: omniedge/omniedge:latest
+  #   container_name: omniedge-nucleus
+  #   hostname: omniedge-nucleus
+  #   network_mode: host
+  #   restart: unless-stopped
+  #   environment:
+  #     - OMNIEDGE_MODE=nucleus
+  #     - OMNIEDGE_SECRET=${OMNIEDGE_SECRET}
+  #     - OMNIEDGE_PORT=51820
+  #   ports:
+  #     - "51820:51820/udp"
+
+  # Dual mode - VPN client + signaling server
+  # omniedge-dual:
+  #   image: omniedge/omniedge:latest
+  #   container_name: omniedge-dual
+  #   hostname: omniedge-dual
+  #   privileged: true
+  #   network_mode: host
+  #   restart: unless-stopped
+  #   environment:
+  #     - OMNIEDGE_MODE=dual
+  #     - OMNIEDGE_NETWORK_ID=${OMNIEDGE_NETWORK_ID}
+  #     - OMNIEDGE_SECURITY_KEY=${OMNIEDGE_SECURITY_KEY}
+  #     - OMNIEDGE_SECRET=${OMNIEDGE_SECRET}
+  #     - OMNIEDGE_PORT=51820
+  #   volumes:
+  #     - /dev/net/tun:/dev/net/tun
+  #   cap_add:
+  #     - NET_ADMIN
