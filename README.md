@@ -12,19 +12,6 @@ Run OmniEdge CLI in a Docker container with support for all three operational mo
 | **nucleus** | Signaling server only | No | No | Yes |
 | **dual** | VPN client + signaling | Yes | Yes | Yes |
 
-## Environment Variables
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `OMNIEDGE_MODE` | No | `edge` | Operating mode: `edge`, `nucleus`, or `dual` |
-| `OMNIEDGE_NETWORK_ID` | edge/dual | - | Virtual network ID to join |
-| `OMNIEDGE_SECURITY_KEY` | edge/dual | - | Security key for authentication |
-| `OMNIEDGE_SECRET` | nucleus/dual | - | Cluster secret (min 16 characters) |
-| `OMNIEDGE_PORT` | No | `51820` | UDP port for nucleus server |
-| `OMNIEDGE_AS_EXIT_NODE` | No | `false` | Act as an exit node |
-| `OMNIEDGE_EXIT_NODE` | No | - | Use a specific exit node IP |
-| `OMNIEDGE_VERBOSE` | No | `false` | Enable verbose logging |
-
 ## Quick Start
 
 ### Edge Mode (VPN Client)
@@ -34,11 +21,9 @@ docker run -d \
   --name omniedge \
   --privileged \
   --network host \
-  -e OMNIEDGE_MODE=edge \
-  -e OMNIEDGE_NETWORK_ID="your-network-id" \
-  -e OMNIEDGE_SECURITY_KEY="your-security-key" \
   -v /dev/net/tun:/dev/net/tun \
-  omniedge/omniedge:latest
+  omniedge/omniedge:latest \
+  start --mode edge -n <network_id> -s <security_key>
 ```
 
 ### Nucleus Mode (Signaling Server)
@@ -47,10 +32,8 @@ docker run -d \
 docker run -d \
   --name omniedge-nucleus \
   --network host \
-  -e OMNIEDGE_MODE=nucleus \
-  -e OMNIEDGE_SECRET="YourSecretMin16Chars" \
-  -e OMNIEDGE_PORT=51820 \
-  omniedge/omniedge:latest
+  omniedge/omniedge:latest \
+  start --mode nucleus --secret "YourSecretMin16Chars" --port 51820
 ```
 
 ### Dual Mode (VPN Client + Signaling Server)
@@ -60,15 +43,33 @@ docker run -d \
   --name omniedge-dual \
   --privileged \
   --network host \
-  -e OMNIEDGE_MODE=dual \
-  -e OMNIEDGE_NETWORK_ID="your-network-id" \
-  -e OMNIEDGE_SECURITY_KEY="your-security-key" \
-  -e OMNIEDGE_SECRET="YourSecretMin16Chars" \
   -v /dev/net/tun:/dev/net/tun \
-  omniedge/omniedge:latest
+  omniedge/omniedge:latest \
+  start --mode dual -n <network_id> -s <security_key> --secret "YourSecretMin16Chars"
 ```
 
+## CLI Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--mode <MODE>` | `-m` | Operating mode: `edge`, `nucleus`, `dual` |
+| `--network-id <ID>` | `-n` | Virtual network ID to join |
+| `--security-key <KEY>` | `-s` | Security key for authentication |
+| `--secret <SECRET>` | | Cluster secret for nucleus mode (min 16 chars) |
+| `--port <PORT>` | `-p` | UDP port for nucleus server (default: 51820) |
+| `--as-exit-node` | `-x` | Act as an exit node |
+| `--exit-node <IP>` | `-e` | Use a specific exit node IP |
+| `--verbose` | `-v` | Enable verbose logging |
+
 ## Docker Compose
+
+Create a `.env` file:
+
+```bash
+OMNIEDGE_NETWORK_ID=your-network-id
+OMNIEDGE_SECURITY_KEY=your-security-key
+OMNIEDGE_SECRET=YourSecretMin16Chars
+```
 
 ### Edge Mode
 
@@ -81,10 +82,7 @@ services:
     privileged: true
     network_mode: host
     restart: unless-stopped
-    environment:
-      - OMNIEDGE_MODE=edge
-      - OMNIEDGE_NETWORK_ID=your-network-id
-      - OMNIEDGE_SECURITY_KEY=your-security-key
+    command: ["start", "--mode", "edge", "-n", "${OMNIEDGE_NETWORK_ID}", "-s", "${OMNIEDGE_SECURITY_KEY}"]
     volumes:
       - /dev/net/tun:/dev/net/tun
     cap_add:
@@ -101,10 +99,7 @@ services:
     container_name: omniedge-nucleus
     network_mode: host
     restart: unless-stopped
-    environment:
-      - OMNIEDGE_MODE=nucleus
-      - OMNIEDGE_SECRET=YourSecretMin16Chars
-      - OMNIEDGE_PORT=51820
+    command: ["start", "--mode", "nucleus", "--secret", "${OMNIEDGE_SECRET}", "--port", "51820"]
 ```
 
 ### Dual Mode
@@ -118,15 +113,37 @@ services:
     privileged: true
     network_mode: host
     restart: unless-stopped
-    environment:
-      - OMNIEDGE_MODE=dual
-      - OMNIEDGE_NETWORK_ID=your-network-id
-      - OMNIEDGE_SECURITY_KEY=your-security-key
-      - OMNIEDGE_SECRET=YourSecretMin16Chars
+    command: ["start", "--mode", "dual", "-n", "${OMNIEDGE_NETWORK_ID}", "-s", "${OMNIEDGE_SECURITY_KEY}", "--secret", "${OMNIEDGE_SECRET}"]
     volumes:
       - /dev/net/tun:/dev/net/tun
     cap_add:
       - NET_ADMIN
+```
+
+## Exit Node Configuration
+
+### Run as Exit Node
+
+```bash
+docker run -d \
+  --name omniedge \
+  --privileged \
+  --network host \
+  -v /dev/net/tun:/dev/net/tun \
+  omniedge/omniedge:latest \
+  start --mode edge -n <network_id> -s <security_key> --as-exit-node
+```
+
+### Use Specific Exit Node
+
+```bash
+docker run -d \
+  --name omniedge \
+  --privileged \
+  --network host \
+  -v /dev/net/tun:/dev/net/tun \
+  omniedge/omniedge:latest \
+  start --mode edge -n <network_id> -s <security_key> --exit-node 10.0.0.1
 ```
 
 ## Build
@@ -141,38 +158,6 @@ docker build --build-arg VERSION=2.0.0 -t omniedge/omniedge:2.0.0 .
 # Multi-arch build
 docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 \
   -t omniedge/omniedge:latest --push .
-```
-
-## Exit Node Configuration
-
-### Run as Exit Node
-
-```bash
-docker run -d \
-  --name omniedge \
-  --privileged \
-  --network host \
-  -e OMNIEDGE_MODE=edge \
-  -e OMNIEDGE_NETWORK_ID="your-network-id" \
-  -e OMNIEDGE_SECURITY_KEY="your-security-key" \
-  -e OMNIEDGE_AS_EXIT_NODE=true \
-  -v /dev/net/tun:/dev/net/tun \
-  omniedge/omniedge:latest
-```
-
-### Use Specific Exit Node
-
-```bash
-docker run -d \
-  --name omniedge \
-  --privileged \
-  --network host \
-  -e OMNIEDGE_MODE=edge \
-  -e OMNIEDGE_NETWORK_ID="your-network-id" \
-  -e OMNIEDGE_SECURITY_KEY="your-security-key" \
-  -e OMNIEDGE_EXIT_NODE="10.0.0.1" \
-  -v /dev/net/tun:/dev/net/tun \
-  omniedge/omniedge:latest
 ```
 
 ## Supported Architectures

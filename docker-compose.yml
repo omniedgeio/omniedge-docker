@@ -5,51 +5,44 @@ services:
   omniedge:
     image: omniedge/omniedge:latest
     container_name: omniedge
-    hostname: omniedge
     privileged: true
     network_mode: host
     restart: unless-stopped
-    environment:
-      - OMNIEDGE_MODE=edge
-      - OMNIEDGE_NETWORK_ID=${OMNIEDGE_NETWORK_ID}
-      - OMNIEDGE_SECURITY_KEY=${OMNIEDGE_SECURITY_KEY}
-      # Optional: Exit node configuration
-      # - OMNIEDGE_AS_EXIT_NODE=true
-      # - OMNIEDGE_EXIT_NODE=10.0.0.1
-      # - OMNIEDGE_VERBOSE=true
+    command: ["start", "--mode", "edge", "-n", "${OMNIEDGE_NETWORK_ID}", "-s", "${OMNIEDGE_SECURITY_KEY}"]
     volumes:
       - /dev/net/tun:/dev/net/tun
     cap_add:
       - NET_ADMIN
 
-  # Nucleus mode - Signaling server only (no VPN, no login required)
+  # Nucleus mode - Signaling server only
   # omniedge-nucleus:
   #   image: omniedge/omniedge:latest
   #   container_name: omniedge-nucleus
-  #   hostname: omniedge-nucleus
   #   network_mode: host
   #   restart: unless-stopped
-  #   environment:
-  #     - OMNIEDGE_MODE=nucleus
-  #     - OMNIEDGE_SECRET=${OMNIEDGE_SECRET}
-  #     - OMNIEDGE_PORT=51820
-  #   ports:
-  #     - "51820:51820/udp"
+  #   command: ["start", "--mode", "nucleus", "--secret", "${OMNIEDGE_SECRET}", "--port", "51820"]
 
   # Dual mode - VPN client + signaling server
   # omniedge-dual:
   #   image: omniedge/omniedge:latest
   #   container_name: omniedge-dual
-  #   hostname: omniedge-dual
   #   privileged: true
   #   network_mode: host
   #   restart: unless-stopped
-  #   environment:
-  #     - OMNIEDGE_MODE=dual
-  #     - OMNIEDGE_NETWORK_ID=${OMNIEDGE_NETWORK_ID}
-  #     - OMNIEDGE_SECURITY_KEY=${OMNIEDGE_SECURITY_KEY}
-  #     - OMNIEDGE_SECRET=${OMNIEDGE_SECRET}
-  #     - OMNIEDGE_PORT=51820
+  #   command: ["start", "--mode", "dual", "-n", "${OMNIEDGE_NETWORK_ID}", "-s", "${OMNIEDGE_SECURITY_KEY}", "--secret", "${OMNIEDGE_SECRET}"]
+  #   volumes:
+  #     - /dev/net/tun:/dev/net/tun
+  #   cap_add:
+  #     - NET_ADMIN
+
+  # Edge mode with exit node
+  # omniedge-exit:
+  #   image: omniedge/omniedge:latest
+  #   container_name: omniedge-exit
+  #   privileged: true
+  #   network_mode: host
+  #   restart: unless-stopped
+  #   command: ["start", "--mode", "edge", "-n", "${OMNIEDGE_NETWORK_ID}", "-s", "${OMNIEDGE_SECURITY_KEY}", "--as-exit-node"]
   #   volumes:
   #     - /dev/net/tun:/dev/net/tun
   #   cap_add:

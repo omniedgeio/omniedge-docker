@@ -27,16 +27,9 @@ RUN if [ ! -f /usr/local/bin/omniedge ]; then \
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Default environment variables
-ENV OMNIEDGE_MODE=edge
-ENV OMNIEDGE_NETWORK_ID=""
-ENV OMNIEDGE_SECURITY_KEY=""
-ENV OMNIEDGE_SECRET=""
-ENV OMNIEDGE_PORT=51820
-ENV OMNIEDGE_AS_EXIT_NODE=false
-ENV OMNIEDGE_EXIT_NODE=""
-ENV OMNIEDGE_VERBOSE=false
-
 EXPOSE 51820/udp
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+# Default command (can be overridden with flags)
+CMD ["start"]
