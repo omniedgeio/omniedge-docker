@@ -27,9 +27,15 @@ RUN if [ ! -f /usr/local/bin/omniedge ]; then \
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# Default environment variables
+ENV OMNIEDGE_MODE=edge
+ENV OMNIEDGE_PORT=51820
+
 EXPOSE 51820/udp
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# Health check - verify omniedge process is running
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD pgrep -x omniedge > /dev/null || exit 1
 
-# Default command (can be overridden with flags)
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["start"]

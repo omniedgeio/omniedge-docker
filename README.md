@@ -1,187 +1,179 @@
 # OmniEdge Docker
 
-> Latest version: 2.0.0
-
-Run OmniEdge CLI in a Docker container with support for all three operational modes.
-
-## Modes
-
-| Mode | Description | Auth Required | VPN Tunnel | Signaling Server |
-|------|-------------|---------------|------------|------------------|
-| **edge** (default) | Regular VPN client | Yes | Yes | No |
-| **nucleus** | Signaling server only | No | No | Yes |
-| **dual** | VPN client + signaling | Yes | Yes | Yes |
+Run OmniEdge VPN in a Docker container.
 
 ## Quick Start
 
-### Edge Mode (VPN Client)
+### Option 1: Docker Compose (Recommended)
 
 ```bash
-docker run -d \
-  --name omniedge \
-  --privileged \
-  --network host \
-  -v /dev/net/tun:/dev/net/tun \
-  omniedge/omniedge:latest \
-  start --mode edge -n <network_id> -s <security_key>
+# 1. Clone and configure
+git clone https://github.com/omniedgeio/omniedge-docker.git
+cd omniedge-docker
+cp .env.example .env
+
+# 2. Edit .env with your credentials
+#    OMNIEDGE_NETWORK_ID=your-network-id
+#    OMNIEDGE_SECURITY_KEY=your-security-key
+
+# 3. Start
+docker compose up -d
+
+# Check status
+docker compose logs -f
 ```
 
-### Nucleus Mode (Signaling Server)
-
-```bash
-docker run -d \
-  --name omniedge-nucleus \
-  --network host \
-  omniedge/omniedge:latest \
-  start --mode nucleus --secret "YourSecretMin16Chars" --port 51820
-```
-
-### Dual Mode (VPN Client + Signaling Server)
-
-```bash
-docker run -d \
-  --name omniedge-dual \
-  --privileged \
-  --network host \
-  -v /dev/net/tun:/dev/net/tun \
-  omniedge/omniedge:latest \
-  start --mode dual -n <network_id> -s <security_key> --secret "YourSecretMin16Chars"
-```
-
-## CLI Flags
-
-| Flag | Short | Description |
-|------|-------|-------------|
-| `--mode <MODE>` | `-m` | Operating mode: `edge`, `nucleus`, `dual` |
-| `--network-id <ID>` | `-n` | Virtual network ID to join |
-| `--security-key <KEY>` | `-s` | Security key for authentication |
-| `--secret <SECRET>` | | Cluster secret for nucleus mode (min 16 chars) |
-| `--port <PORT>` | `-p` | UDP port for nucleus server (default: 51820) |
-| `--as-exit-node` | `-x` | Act as an exit node |
-| `--exit-node <IP>` | `-e` | Use a specific exit node IP |
-| `--verbose` | `-v` | Enable verbose logging |
-
-## Docker Compose
-
-Create a `.env` file:
-
-```bash
-OMNIEDGE_NETWORK_ID=your-network-id
-OMNIEDGE_SECURITY_KEY=your-security-key
-OMNIEDGE_SECRET=YourSecretMin16Chars
-OMNIEDGE_PORT=51820
-```
-
-### Using Profiles
-
-The `docker-compose.yml` includes all three modes as profiles. Choose one to run:
+### Option 2: Docker Run
 
 ```bash
 # Edge mode (VPN client)
-docker compose --profile edge up -d
+docker run -d --name omniedge \
+  --privileged --network host \
+  -e OMNIEDGE_NETWORK_ID=<your-network-id> \
+  -e OMNIEDGE_SECURITY_KEY=<your-security-key> \
+  -v /dev/net/tun:/dev/net/tun \
+  omniedge/omniedge:latest
 
-# Nucleus mode (signaling server)
-docker compose --profile nucleus up -d
-
-# Dual mode (VPN client + signaling server)
-docker compose --profile dual up -d
-```
-
-Stop the service:
-
-```bash
-docker compose --profile <mode> down
-```
-
-### Manual Compose File
-
-Create a custom compose file for your specific needs:
-
-**Edge Mode:**
-```yaml
-version: "3.8"
-services:
-  omniedge:
-    image: omniedge/omniedge:latest
-    privileged: true
-    network_mode: host
-    command: ["start", "--mode", "edge", "-n", "your-network-id", "-s", "your-security-key"]
-    volumes:
-      - /dev/net/tun:/dev/net/tun
-    cap_add:
-      - NET_ADMIN
-```
-
-**Nucleus Mode:**
-```yaml
-version: "3.8"
-services:
-  omniedge-nucleus:
-    image: omniedge/omniedge:latest
-    network_mode: host
-    command: ["start", "--mode", "nucleus", "--secret", "YourSecretMin16Chars"]
-```
-
-**Dual Mode:**
-```yaml
-version: "3.8"
-services:
-  omniedge-dual:
-    image: omniedge/omniedge:latest
-    privileged: true
-    network_mode: host
-    command: ["start", "--mode", "dual", "-n", "your-network-id", "-s", "your-security-key", "--secret", "YourSecretMin16Chars"]
-    volumes:
-      - /dev/net/tun:/dev/net/tun
-    cap_add:
-      - NET_ADMIN
-```
-
-## Exit Node Configuration
-
-### Run as Exit Node
-
-```bash
-docker run -d \
-  --name omniedge \
-  --privileged \
-  --network host \
+# Or with CLI flags
+docker run -d --name omniedge \
+  --privileged --network host \
   -v /dev/net/tun:/dev/net/tun \
   omniedge/omniedge:latest \
-  start --mode edge -n <network_id> -s <security_key> --as-exit-node
+  start -n <network-id> -s <security-key>
 ```
 
-### Use Specific Exit Node
+## Modes
+
+| Mode | Description | Use Case |
+|------|-------------|----------|
+| `edge` | VPN client (default) | Connect to your network |
+| `nucleus` | Signaling server | Self-host relay server |
+| `dual` | VPN + signaling | Edge node that also relays |
+
+### Edge Mode (Default)
 
 ```bash
-docker run -d \
-  --name omniedge \
-  --privileged \
-  --network host \
+docker run -d --name omniedge \
+  --privileged --network host \
+  -e OMNIEDGE_NETWORK_ID=<id> \
+  -e OMNIEDGE_SECURITY_KEY=<key> \
   -v /dev/net/tun:/dev/net/tun \
-  omniedge/omniedge:latest \
-  start --mode edge -n <network_id> -s <security_key> --exit-node 10.0.0.1
+  omniedge/omniedge:latest
+```
+
+### Nucleus Mode
+
+```bash
+docker run -d --name omniedge-nucleus \
+  --network host \
+  -e OMNIEDGE_MODE=nucleus \
+  -e OMNIEDGE_SECRET=YourSecretMin16Chars \
+  omniedge/omniedge:latest
+```
+
+### Dual Mode
+
+```bash
+docker run -d --name omniedge-dual \
+  --privileged --network host \
+  -e OMNIEDGE_MODE=dual \
+  -e OMNIEDGE_NETWORK_ID=<id> \
+  -e OMNIEDGE_SECURITY_KEY=<key> \
+  -e OMNIEDGE_SECRET=YourSecretMin16Chars \
+  -v /dev/net/tun:/dev/net/tun \
+  omniedge/omniedge:latest
+```
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `OMNIEDGE_MODE` | No | `edge` | Mode: `edge`, `nucleus`, `dual` |
+| `OMNIEDGE_NETWORK_ID` | edge/dual | - | Network ID from dashboard |
+| `OMNIEDGE_SECURITY_KEY` | edge/dual | - | Security key from dashboard |
+| `OMNIEDGE_SECRET` | nucleus/dual | - | Cluster secret (min 16 chars) |
+| `OMNIEDGE_PORT` | No | `51820` | UDP port for nucleus |
+| `OMNIEDGE_AS_EXIT_NODE` | No | `false` | Act as exit node |
+| `OMNIEDGE_EXIT_NODE` | No | - | Use specific exit node IP |
+| `OMNIEDGE_VERBOSE` | No | `false` | Enable debug logging |
+
+## CLI Flags
+
+You can also pass flags directly:
+
+```bash
+docker run omniedge/omniedge start --help
+```
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--mode` | `-m` | Operating mode |
+| `--network-id` | `-n` | Network ID |
+| `--security-key` | `-s` | Security key |
+| `--secret` | | Cluster secret |
+| `--port` | `-p` | Nucleus port |
+| `--as-exit-node` | `-x` | Act as exit node |
+| `--exit-node` | `-e` | Use exit node |
+| `--verbose` | `-v` | Debug logging |
+
+## Exit Node
+
+### Advertise as Exit Node
+
+```bash
+docker run -d --name omniedge \
+  --privileged --network host \
+  -e OMNIEDGE_NETWORK_ID=<id> \
+  -e OMNIEDGE_SECURITY_KEY=<key> \
+  -e OMNIEDGE_AS_EXIT_NODE=true \
+  -v /dev/net/tun:/dev/net/tun \
+  omniedge/omniedge:latest
+```
+
+### Route Through Exit Node
+
+```bash
+docker run -d --name omniedge \
+  --privileged --network host \
+  -e OMNIEDGE_NETWORK_ID=<id> \
+  -e OMNIEDGE_SECURITY_KEY=<key> \
+  -e OMNIEDGE_EXIT_NODE=10.0.0.1 \
+  -v /dev/net/tun:/dev/net/tun \
+  omniedge/omniedge:latest
 ```
 
 ## Build
 
 ```bash
-# Build for current architecture
+# Local build
 docker build -t omniedge/omniedge:latest .
 
-# Build with specific version
+# With specific version
 docker build --build-arg VERSION=2.0.0 -t omniedge/omniedge:2.0.0 .
 
-# Multi-arch build
+# Multi-arch
 docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 \
   -t omniedge/omniedge:latest --push .
 ```
 
-## Supported Architectures
+## Architectures
 
-- `linux/amd64` (x86_64)
-- `linux/arm64` (ARM64, Raspberry Pi 4/5)
-- `linux/arm/v7` (ARMv7, Raspberry Pi 3)
+- `linux/amd64` - x86_64 servers
+- `linux/arm64` - Raspberry Pi 4/5, AWS Graviton
+- `linux/arm/v7` - Raspberry Pi 3
+
+## Troubleshooting
+
+```bash
+# View logs
+docker logs omniedge
+
+# Check status
+docker exec omniedge omniedge status
+
+# Interactive shell
+docker exec -it omniedge sh
+```
 
 ## License
 

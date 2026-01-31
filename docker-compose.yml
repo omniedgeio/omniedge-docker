@@ -1,49 +1,53 @@
-version: "3.8"
-
-# Usage:
-#   Edge mode:    docker compose --profile edge up -d
-#   Nucleus mode: docker compose --profile nucleus up -d
-#   Dual mode:    docker compose --profile dual up -d
+# OmniEdge Docker Compose
 #
-# Create a .env file with your configuration:
-#   OMNIEDGE_NETWORK_ID=your-network-id
-#   OMNIEDGE_SECURITY_KEY=your-security-key
-#   OMNIEDGE_SECRET=YourSecretMin16Chars
+# Quick Start:
+#   1. Copy .env.example to .env and fill in your values
+#   2. Run: docker compose up -d
+#
+# The default service uses environment variables for configuration.
+# Uncomment additional services if you need nucleus or dual mode.
 
 services:
-  # Edge mode - VPN client
-  omniedge-edge:
+  # Default: Edge mode (VPN client)
+  # Just set OMNIEDGE_NETWORK_ID and OMNIEDGE_SECURITY_KEY in .env
+  omniedge:
     image: omniedge/omniedge:latest
     container_name: omniedge
-    profiles: ["edge"]
     privileged: true
     network_mode: host
     restart: unless-stopped
-    command: ["start", "--mode", "edge", "-n", "${OMNIEDGE_NETWORK_ID}", "-s", "${OMNIEDGE_SECURITY_KEY}"]
+    env_file:
+      - .env
     volumes:
       - /dev/net/tun:/dev/net/tun
     cap_add:
       - NET_ADMIN
 
-  # Nucleus mode - Signaling server only
-  omniedge-nucleus:
-    image: omniedge/omniedge:latest
-    container_name: omniedge-nucleus
-    profiles: ["nucleus"]
-    network_mode: host
-    restart: unless-stopped
-    command: ["start", "--mode", "nucleus", "--secret", "${OMNIEDGE_SECRET}", "--port", "${OMNIEDGE_PORT:-51820}"]
+  # Nucleus mode - Signaling server only (uncomment to use)
+  # Set OMNIEDGE_MODE=nucleus and OMNIEDGE_SECRET in .env
+  # omniedge-nucleus:
+  #   image: omniedge/omniedge:latest
+  #   container_name: omniedge-nucleus
+  #   network_mode: host
+  #   restart: unless-stopped
+  #   environment:
+  #     - OMNIEDGE_MODE=nucleus
+  #   env_file:
+  #     - .env
 
-  # Dual mode - VPN client + signaling server
-  omniedge-dual:
-    image: omniedge/omniedge:latest
-    container_name: omniedge-dual
-    profiles: ["dual"]
-    privileged: true
-    network_mode: host
-    restart: unless-stopped
-    command: ["start", "--mode", "dual", "-n", "${OMNIEDGE_NETWORK_ID}", "-s", "${OMNIEDGE_SECURITY_KEY}", "--secret", "${OMNIEDGE_SECRET}"]
-    volumes:
-      - /dev/net/tun:/dev/net/tun
-    cap_add:
-      - NET_ADMIN
+  # Dual mode - VPN + Signaling (uncomment to use)
+  # Set OMNIEDGE_MODE=dual, OMNIEDGE_NETWORK_ID, OMNIEDGE_SECURITY_KEY, and OMNIEDGE_SECRET in .env
+  # omniedge-dual:
+  #   image: omniedge/omniedge:latest
+  #   container_name: omniedge-dual
+  #   privileged: true
+  #   network_mode: host
+  #   restart: unless-stopped
+  #   environment:
+  #     - OMNIEDGE_MODE=dual
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - /dev/net/tun:/dev/net/tun
+  #   cap_add:
+  #     - NET_ADMIN
