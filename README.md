@@ -1,6 +1,6 @@
 # OmniEdge Docker
 
->Latest version: 1.0.2-beta.0
+>Latest version: 2.0.0
 
 Run OmniEdge in a container
 

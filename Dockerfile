@@ -1,7 +1,7 @@
 FROM alpine:3.16
 
 ARG TARGETARCH
-ARG VERSION=1.0.2-beta.0
+ARG VERSION=2.0.0
 
 # Map Docker TARGETARCH to CLI asset naming
 # Docker uses: amd64, arm64, arm
