@@ -69,51 +69,68 @@ Create a `.env` file:
 OMNIEDGE_NETWORK_ID=your-network-id
 OMNIEDGE_SECURITY_KEY=your-security-key
 OMNIEDGE_SECRET=YourSecretMin16Chars
+OMNIEDGE_PORT=51820
 ```
 
-### Edge Mode
+### Using Profiles
 
+The `docker-compose.yml` includes all three modes as profiles. Choose one to run:
+
+```bash
+# Edge mode (VPN client)
+docker compose --profile edge up -d
+
+# Nucleus mode (signaling server)
+docker compose --profile nucleus up -d
+
+# Dual mode (VPN client + signaling server)
+docker compose --profile dual up -d
+```
+
+Stop the service:
+
+```bash
+docker compose --profile <mode> down
+```
+
+### Manual Compose File
+
+Create a custom compose file for your specific needs:
+
+**Edge Mode:**
 ```yaml
 version: "3.8"
 services:
   omniedge:
     image: omniedge/omniedge:latest
-    container_name: omniedge
     privileged: true
     network_mode: host
-    restart: unless-stopped
-    command: ["start", "--mode", "edge", "-n", "${OMNIEDGE_NETWORK_ID}", "-s", "${OMNIEDGE_SECURITY_KEY}"]
+    command: ["start", "--mode", "edge", "-n", "your-network-id", "-s", "your-security-key"]
     volumes:
       - /dev/net/tun:/dev/net/tun
     cap_add:
       - NET_ADMIN
 ```
 
-### Nucleus Mode
-
+**Nucleus Mode:**
 ```yaml
 version: "3.8"
 services:
   omniedge-nucleus:
     image: omniedge/omniedge:latest
-    container_name: omniedge-nucleus
     network_mode: host
-    restart: unless-stopped
-    command: ["start", "--mode", "nucleus", "--secret", "${OMNIEDGE_SECRET}", "--port", "51820"]
+    command: ["start", "--mode", "nucleus", "--secret", "YourSecretMin16Chars"]
 ```
 
-### Dual Mode
-
+**Dual Mode:**
 ```yaml
 version: "3.8"
 services:
   omniedge-dual:
     image: omniedge/omniedge:latest
-    container_name: omniedge-dual
     privileged: true
     network_mode: host
-    restart: unless-stopped
-    command: ["start", "--mode", "dual", "-n", "${OMNIEDGE_NETWORK_ID}", "-s", "${OMNIEDGE_SECURITY_KEY}", "--secret", "${OMNIEDGE_SECRET}"]
+    command: ["start", "--mode", "dual", "-n", "your-network-id", "-s", "your-security-key", "--secret", "YourSecretMin16Chars"]
     volumes:
       - /dev/net/tun:/dev/net/tun
     cap_add:

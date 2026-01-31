@@ -1,10 +1,21 @@
 version: "3.8"
 
+# Usage:
+#   Edge mode:    docker compose --profile edge up -d
+#   Nucleus mode: docker compose --profile nucleus up -d
+#   Dual mode:    docker compose --profile dual up -d
+#
+# Create a .env file with your configuration:
+#   OMNIEDGE_NETWORK_ID=your-network-id
+#   OMNIEDGE_SECURITY_KEY=your-security-key
+#   OMNIEDGE_SECRET=YourSecretMin16Chars
+
 services:
-  # Edge mode - VPN client (default)
-  omniedge:
+  # Edge mode - VPN client
+  omniedge-edge:
     image: omniedge/omniedge:latest
     container_name: omniedge
+    profiles: ["edge"]
     privileged: true
     network_mode: host
     restart: unless-stopped
@@ -15,35 +26,24 @@ services:
       - NET_ADMIN
 
   # Nucleus mode - Signaling server only
-  # omniedge-nucleus:
-  #   image: omniedge/omniedge:latest
-  #   container_name: omniedge-nucleus
-  #   network_mode: host
-  #   restart: unless-stopped
-  #   command: ["start", "--mode", "nucleus", "--secret", "${OMNIEDGE_SECRET}", "--port", "51820"]
+  omniedge-nucleus:
+    image: omniedge/omniedge:latest
+    container_name: omniedge-nucleus
+    profiles: ["nucleus"]
+    network_mode: host
+    restart: unless-stopped
+    command: ["start", "--mode", "nucleus", "--secret", "${OMNIEDGE_SECRET}", "--port", "${OMNIEDGE_PORT:-51820}"]
 
   # Dual mode - VPN client + signaling server
-  # omniedge-dual:
-  #   image: omniedge/omniedge:latest
-  #   container_name: omniedge-dual
-  #   privileged: true
-  #   network_mode: host
-  #   restart: unless-stopped
-  #   command: ["start", "--mode", "dual", "-n", "${OMNIEDGE_NETWORK_ID}", "-s", "${OMNIEDGE_SECURITY_KEY}", "--secret", "${OMNIEDGE_SECRET}"]
-  #   volumes:
-  #     - /dev/net/tun:/dev/net/tun
-  #   cap_add:
-  #     - NET_ADMIN
-
-  # Edge mode with exit node
-  # omniedge-exit:
-  #   image: omniedge/omniedge:latest
-  #   container_name: omniedge-exit
-  #   privileged: true
-  #   network_mode: host
-  #   restart: unless-stopped
-  #   command: ["start", "--mode", "edge", "-n", "${OMNIEDGE_NETWORK_ID}", "-s", "${OMNIEDGE_SECURITY_KEY}", "--as-exit-node"]
-  #   volumes:
-  #     - /dev/net/tun:/dev/net/tun
-  #   cap_add:
-  #     - NET_ADMIN
+  omniedge-dual:
+    image: omniedge/omniedge:latest
+    container_name: omniedge-dual
+    profiles: ["dual"]
+    privileged: true
+    network_mode: host
+    restart: unless-stopped
+    command: ["start", "--mode", "dual", "-n", "${OMNIEDGE_NETWORK_ID}", "-s", "${OMNIEDGE_SECURITY_KEY}", "--secret", "${OMNIEDGE_SECRET}"]
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
