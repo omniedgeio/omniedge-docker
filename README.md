@@ -98,7 +98,7 @@ docker stop omniedge
 docker build -t omniedge/omniedge:latest .
 
 # Multi-arch
-docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 \
+docker buildx build --platform linux/amd64,linux/arm64 \
   -t omniedge/omniedge:latest --push .
 ```
 
@@ -106,4 +106,3 @@ docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 \
 
 - `linux/amd64`
 - `linux/arm64`
-- `linux/arm/v7`
