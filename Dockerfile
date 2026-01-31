@@ -9,6 +9,7 @@ RUN apk update && apk add --no-cache wget tar
 RUN case "${TARGETARCH}" in \
       amd64) CLI_ARCH="x64" ;; \
       arm64) CLI_ARCH="arm64" ;; \
+      arm)   CLI_ARCH="armv7" ;; \
       *)     CLI_ARCH="${TARGETARCH}" ;; \
     esac && \
     wget -q "https://github.com/omniedgeio/omniedge/releases/download/v${VERSION}/omniedge-cli-${VERSION}-linux-${CLI_ARCH}.tar.gz" -O /tmp/omniedge.tar.gz && \
