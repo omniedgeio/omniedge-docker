@@ -1,7 +1,7 @@
 FROM alpine:3.20
 
 ARG TARGETARCH
-ARG VERSION=2.4.0-pre
+ARG VERSION=2.4.0
 
 RUN apk update && apk add --no-cache wget tar
 
